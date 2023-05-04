@@ -6,7 +6,7 @@ from tqdm import tqdm
 import numpy as np
 from copy import deepcopy
 
-from utils import weights_init, conv2DBatchNormRelu, conv2DRelu, deconv2DBatchNormRelu, deconv2DRelu
+from change_utils import weights_init, conv2DBatchNormRelu, conv2DRelu, deconv2DBatchNormRelu, deconv2DRelu
 from utils.softargmax import SoftArgmax2D, create_meshgrid
 from utils.dataset import augment_data, create_images_dict
 from utils.image_utils import create_gaussian_heatmap_template, create_dist_mat, \
