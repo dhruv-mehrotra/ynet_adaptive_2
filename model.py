@@ -35,7 +35,7 @@ class StyleModulator(nn.Module):
 		return stylized
 
 class YNetEncoder(nn.Module):
-	def __init__(self, in_channels, channels=(64, 128, 256, 512, 512)):
+    	def __init__(self, in_channels, channels=(64, 128, 256, 512, 512)):
 		"""
 		Encoder model
 		:param in_channels: int, semantic_classes + obs_len
@@ -45,7 +45,7 @@ class YNetEncoder(nn.Module):
 		self.stages = nn.ModuleList()
 
 		# First block
-		self._encoder = nn.Sequential(
+		self.stages.append(nn.Sequential(
             conv2DBatchNormRelu(in_channels = in_channels, n_filters = 16, \
                 k_size = 3,  stride = 1, padding = 1),
             conv2DBatchNormRelu(in_channels = 16, n_filters = 16, \
@@ -53,11 +53,27 @@ class YNetEncoder(nn.Module):
             nn.MaxPool2d((2, 2), stride=(2, 2)),
             conv2DBatchNormRelu(in_channels = 16, n_filters = channels[0], \
                 k_size = 5,  stride = 1, padding = 2),
-            )
+            ))
 
-	def forward(self, input):
-		encoded = self._encoder(input.type(torch.cuda.FloatTensor))
-		return encoded
+		# Subsequent blocks, each starting with MaxPool
+		for i in range(len(channels)-1):
+			self.stages.append(nn.Sequential(
+				nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False),
+				nn.Conv2d(channels[i], channels[i+1], kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
+				nn.ReLU(inplace=True),
+				nn.Conv2d(channels[i+1], channels[i+1], kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
+				nn.ReLU(inplace=True)))
+
+		# Last MaxPool layer before passing the features into decoder
+		self.stages.append(nn.Sequential(nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)))
+
+	def forward(self, x):
+		# Saves the feature maps Tensor of each layer into a list, as we will later need them again for the decoder
+		features = []
+		for stage in self.stages:
+			x = stage(x)
+			features.append(x)
+		return features
 
 
 class YNetDecoder(nn.Module):
