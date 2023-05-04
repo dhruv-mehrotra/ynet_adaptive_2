@@ -6,6 +6,7 @@ from tqdm import tqdm
 import numpy as np
 from copy import deepcopy
 
+from utils import weights_init, conv2DBatchNormRelu, conv2DRelu, deconv2DBatchNormRelu, deconv2DRelu
 from utils.softargmax import SoftArgmax2D, create_meshgrid
 from utils.dataset import augment_data, create_images_dict
 from utils.image_utils import create_gaussian_heatmap_template, create_dist_mat, \
@@ -45,9 +46,15 @@ class YNetEncoder(nn.Module):
 
 		# First block
 		self.stages.append(nn.Sequential(
-			nn.Conv2d(in_channels, channels[0], kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
-			nn.ReLU(inplace=True),
-		))
+            conv2DBatchNormRelu(in_channels = in_channels, n_filters = 16, \
+                k_size = 3,  stride = 1, padding = 1),
+            conv2DBatchNormRelu(in_channels = 16, n_filters = 16, \
+                k_size = 4,  stride = 1, padding = 2),
+            nn.MaxPool2d((2, 2), stride=(2, 2)),
+
+            conv2DBatchNormRelu(in_channels = 16, n_filters = channels[0], \
+                k_size = 5,  stride = 1, padding = 2),
+            ))
 
 		# Subsequent blocks, each starting with MaxPool
 		for i in range(len(channels)-1):
