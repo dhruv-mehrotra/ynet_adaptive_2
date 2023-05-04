@@ -49,11 +49,11 @@ class YNetEncoder(nn.Module):
             conv2DBatchNormRelu(in_channels = in_channels, n_filters = 16, \
                 k_size = 3,  stride = 1, padding = 1),
             conv2DBatchNormRelu(in_channels = 16, n_filters = 16, \
-                k_size = 4,  stride = 1, padding = 2),
-            nn.MaxPool2d((2, 2), stride=(2, 2)),
+                k_size = 3,  stride = 1, padding = 1),
+            nn.MaxPool2d((2, 2), stride=(1, 1)),
 
             conv2DBatchNormRelu(in_channels = 16, n_filters = channels[0], \
-                k_size = 5,  stride = 1, padding = 2),
+                k_size = 3,  stride = 1, padding = 1),
             ))
 
 		# Subsequent blocks, each starting with MaxPool
