@@ -45,7 +45,7 @@ class YNetEncoder(nn.Module):
 		self.stages = nn.ModuleList()
 
 		# First block
-		self.stages.append(nn.Sequential(
+		self._encoder = nn.Sequential(
             conv2DBatchNormRelu(in_channels = in_channels, n_filters = 16, \
                 k_size = 3,  stride = 1, padding = 1),
             conv2DBatchNormRelu(in_channels = 16, n_filters = 16, \
@@ -53,15 +53,11 @@ class YNetEncoder(nn.Module):
             nn.MaxPool2d((2, 2), stride=(2, 2)),
             conv2DBatchNormRelu(in_channels = 16, n_filters = channels[0], \
                 k_size = 5,  stride = 1, padding = 2),
-            ))
+            )
 
-	def forward(self, x):
-		# Saves the feature maps Tensor of each layer into a list, as we will later need them again for the decoder
-		features = []
-		for stage in self.stages:
-			x = stage(x)
-			features.append(x)
-		return features
+	def forward(self, input):
+		encoded = self._encoder(input.type(torch.cuda.FloatTensor))
+		return encoded
 
 
 class YNetDecoder(nn.Module):
